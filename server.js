@@ -6,6 +6,7 @@ const express = require('express');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
+const dbPath = path.join(__dirname, 'db/db.json');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -13,7 +14,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, './public')));
 
 app.get('/api/notes', (req, res) => {
-  fs.readFile(path.join(__dirname, 'db/db.json'), 'utf8', (err, data) => {
+  fs.readFile(dbPath, 'utf8', (err, data) => {
     if (err) {
       // Should handle this properly.
       throw err;
@@ -23,12 +24,12 @@ app.get('/api/notes', (req, res) => {
 });
 
 app.post('/api/notes', (req, res) => {
-  fs.readFile(path.join(__dirname, 'db/db.json'), 'utf8', (err, data) => {
+  fs.readFile(dbPath, 'utf8', (err, data) => {
     const notes = JSON.parse(data);
     const newNote = req.body;
     newNote.id = crypto.randomUUID();
     notes.push(newNote);
-    fs.writeFile(path.join(__dirname, 'db/db.json'), JSON.stringify(notes), (err) => {
+    fs.writeFile(dbPath, JSON.stringify(notes), (err) => {
       if (err) {
         throw err;
       }
@@ -38,10 +39,10 @@ app.post('/api/notes', (req, res) => {
 });
 
 app.delete('/api/notes/:id', (req, res) => {
-  fs.readFile(path.join(__dirname, 'db/db.json'), 'utf8', (err, data) => {
+  fs.readFile(dbPath, 'utf8', (err, data) => {
     const notes = JSON.parse(data);
     const filteredNotes = notes.filter(note => note.id != req.params.id);
-    fs.writeFile(path.join(__dirname, 'db/db.json'), JSON.stringify(filteredNotes), (err) => {
+    fs.writeFile(dbPath, JSON.stringify(filteredNotes), (err) => {
       if (err) {
         throw err;
       }
