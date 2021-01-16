@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const express = require('express');
 
 const app = express();
@@ -8,6 +9,50 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use(express.static(path.join(__dirname, './public')));
+
+app.get('/api/notes', (req, res) => {
+  fs.readFile(path.join(__dirname, 'db/db.json'), 'utf8', (err, data) => {
+    if (err) {
+      // Should handle this properly.
+      throw err;
+    }
+    res.json(JSON.parse(data));
+  });
+});
+
+app.post('/api/notes', (req, res) => {
+  fs.readFile(path.join(__dirname, 'db/db.json'), 'utf8', (err, data) => {
+    const notes = JSON.parse(data);
+    const newNote = req.body;
+    newNote.id = crypto.randomUUID();
+    notes.push(newNote);
+    fs.writeFile(path.join(__dirname, 'db/db.json'), JSON.stringify(notes), (err) => {
+      if (err) {
+        throw err;
+      }
+      res.json(newNote);
+    });
+  });
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+  fs.readFile(path.join(__dirname, 'db/db.json'), 'utf8', (err, data) => {
+    const notes = JSON.parse(data);
+    const filteredNotes = notes.filter(note => note.id != req.params.id);
+    fs.writeFile(path.join(__dirname, 'db/db.json'), JSON.stringify(filteredNotes), (err) => {
+      if (err) {
+        throw err;
+      }
+      res.end();
+    });
+  });
+});
+
+app.get('/notes', (req, res) => {
+  res.sendFile(path.join(__dirname, './public/notes.html'));
+});
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, './public/index.html'));
