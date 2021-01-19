@@ -15,8 +15,8 @@ app.use(express.static(path.join(__dirname, './public')));
 app.get('/api/notes', (req, res) => {
   fs.readFile(dbPath, 'utf8', (err, data) => {
     if (err) {
-      // Should handle this properly.
-      throw err;
+      console.error(err);
+      return res.sendStatus(500);
     }
     res.json(JSON.parse(data));
   });
@@ -30,7 +30,8 @@ app.post('/api/notes', (req, res) => {
     notes.push(newNote);
     fs.writeFile(dbPath, JSON.stringify(notes), (err) => {
       if (err) {
-        throw err;
+        console.log(err);
+        return res.sendStatus(500);
       }
       res.json(newNote);
     });
@@ -43,7 +44,8 @@ app.delete('/api/notes/:id', (req, res) => {
     const filteredNotes = notes.filter(note => note.id != req.params.id);
     fs.writeFile(dbPath, JSON.stringify(filteredNotes), (err) => {
       if (err) {
-        throw err;
+        console.log(err);
+        return res.sendStatus(500);
       }
       res.end();
     });
